@@ -1,0 +1,19 @@
+---
+- name: Creating Backup for the cert key
+  copy:
+    src: /var/lib/mongodb/cert/KeyWCert.pem
+    dest:  /var/lib/mongodb/cert/KeyWCert.pem_BACKUP{{ansible_date_time.date}}
+    remote_src: yes
+    mode: "0600"
+
+- name: Parsing out the server certificate key to push it into KeyWCert.pem
+  shell:
+    cmd: sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' /etc/pki/ca-trust/source/anchors/{{certificate}}
+  register: key_output      
+
+- name: Updating the certificate key (KeyWCert.pem}}
+  lineinfile:
+    path: /var/lib/mongodb/cert/KeyWCert.pem_BACKUP{{ansible_date_time.date}}  #USING THIS 'KEYWCERT_BACKUP JUST FOR TESTING, MAKE SURE TO CHANGE IT
+    line: "{{ key_output.stdout }}"
+    insertafter: EOF
+    
